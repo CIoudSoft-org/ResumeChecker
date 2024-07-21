@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Commands;
+using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Queries;
 
 namespace ResumeAutoCheckker.API.Controllers
 {
@@ -24,10 +25,31 @@ namespace ResumeAutoCheckker.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Resume(RegisterResumeCommand command, CancellationToken cancellationToken)
+        [HttpGet("AcceptedResumes/{index}/{size}")]
+        public async Task<IActionResult> GetAcceptedResumes(int index, int size, CancellationToken cancellationToken)
         {
-            var response = await _mediator.Send(command, cancellationToken);
+
+            var query = new GetAllAcceptedResumes()
+            {
+                Index = index,
+                Size = size,
+            };
+            var response = await _mediator.Send(query, cancellationToken);
+
+            return Ok(response);
+        }
+
+
+        [HttpGet("RejectedResumes/{index}/{size}")]
+        public async Task<IActionResult> GetRejectedResumes(int index, int size, CancellationToken cancellationToken)
+        {
+
+            var query = new GetAllRejectedResumes()
+            {
+                Index = index,
+                Size = size,
+            };
+            var response = await _mediator.Send(query, cancellationToken);
 
             return Ok(response);
         }
