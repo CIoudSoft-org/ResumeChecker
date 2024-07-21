@@ -44,9 +44,9 @@ namespace ResumeAutoCheckker.API
 
             app.UseHttpsRedirection();
 
-            app.UseStaticFiles();
-
             app.UseCors();
+
+            app.UseStaticFiles();
 
             app.UseAuthentication();
 

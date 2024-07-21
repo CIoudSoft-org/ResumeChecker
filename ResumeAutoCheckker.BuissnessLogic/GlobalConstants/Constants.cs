@@ -8,7 +8,7 @@ namespace ResumeAutoCheckker.BuissnessLogic.GlobalConstants
 {
     public static class Constants
     {
-        public const string ApiUrl = "https://api.example.com";
+        public const string ApiUrl = "https://localhost:7096";
     }
 
 }

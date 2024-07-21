@@ -54,7 +54,7 @@ public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHos
                 Email = request.Email,
                 LastName = request.LastName,
                 FirstName = request.FirstName,
-                Status = ResumeStatus.NotResponsed,
+                Status = ResumeStatus.Accepted,
                 ResumePath = GlobalConstants.Constants.ApiUrl + "/WorkerResumes/" + file.FileName,
             };
 
