@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers
+namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Commands
 {
     public class RejectListOfResumeCommand : IRequest<ResponseModel>
     {

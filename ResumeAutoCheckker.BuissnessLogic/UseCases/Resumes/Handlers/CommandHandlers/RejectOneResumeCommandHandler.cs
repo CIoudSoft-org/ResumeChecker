@@ -1,25 +1,25 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ResumeAutoCheckker.BuissnessLogic.Abstractions;
-using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers;
+using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Commands;
 using ResumeAutoCheckker.BuissnessLogic.ViewModels;
-using ResumeAutoCheckker.Domain.Enums;
-namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.QueryHandlers
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers
 {
-    public class AcceptResumeCommandHandler : IRequestHandler<AcceptResumeCommand, ResponseModel>
+    public class RejectOneResumeCommandHandler(IApplicaitonDbContext context) : IRequestHandler<RejectOneResumeCommand, ResponseModel>
     {
-        private readonly IApplicaitonDbContext _context;
+        private readonly IApplicaitonDbContext _context = context;
 
-        public AcceptResumeCommandHandler(IApplicaitonDbContext context)
-        {
-            _context = context;
-        }
-
-        public async Task<ResponseModel> Handle(AcceptResumeCommand request, CancellationToken cancellationToken)
+        public async Task<ResponseModel> Handle(RejectOneResumeCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var resume = await _context.Resumes.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+                var resume = await _context.Resumes.FirstOrDefaultAsync(x => x.Id == request.Id);
 
                 if (resume == null)
                 {
@@ -30,16 +30,14 @@ namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.QueryHandl
                         StatusCode = 404
                     };
                 }
-                
+
                 //email send
-
-                resume.Status = ResumeStatus.NotResponsed;
-
+                _context.Resumes.Remove(resume);
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return new ResponseModel()
                 {
-                    Message = "Successfully sended",
+                    Message = "Successfully rejected",
                     isSuccess = true,
                     StatusCode = 200
                 };
@@ -54,7 +52,5 @@ namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.QueryHandl
                 };
             }
         }
-    }
-
     }
 }

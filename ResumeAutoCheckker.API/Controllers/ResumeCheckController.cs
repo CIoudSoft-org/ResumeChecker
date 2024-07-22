@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Commands;
-using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers;
 using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Queries;
 
 namespace ResumeAutoCheckker.API.Controllers

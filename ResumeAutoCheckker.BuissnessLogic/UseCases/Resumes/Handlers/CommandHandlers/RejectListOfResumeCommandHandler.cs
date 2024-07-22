@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ResumeAutoCheckker.BuissnessLogic.Abstractions;
-using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers;
+using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Commands;
 using ResumeAutoCheckker.BuissnessLogic.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.QueryHandlers
+namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers
 {
     public class RejectListOfResumeCommandHandler(IApplicaitonDbContext context) : IRequestHandler<RejectListOfResumeCommand, ResponseModel>
     {
