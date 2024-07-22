@@ -11,7 +11,6 @@ namespace ResumeAutoCheckker.BuissnessLogic.Abstractions
 {
     public interface IApplicaitonDbContext
     {
-        DbSet<AppHr> Hrs { get; set; }
         DbSet<Resume> Resumes { get; set; }
 
         ValueTask<int> SaveChangesAsync(CancellationToken cancellation = default!);

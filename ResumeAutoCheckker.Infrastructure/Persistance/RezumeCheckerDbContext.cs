@@ -21,7 +21,6 @@ namespace ResumeAutoCheckker.Infrastructure.Persistance
         {
             Database.Migrate();
         }
-        public DbSet<AppHr> Hrs { get; set; }
         public DbSet<Resume> Resumes { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {

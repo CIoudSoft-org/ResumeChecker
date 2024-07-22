@@ -1,4 +1,5 @@
-﻿using ResumeAutoCheckker.BuissnessLogic;
+﻿using OpenAI_API;
+using ResumeAutoCheckker.BuissnessLogic;
 using ResumeAutoCheckker.Infrastructure;
 
 namespace ResumeAutoCheckker.API
@@ -32,6 +33,13 @@ namespace ResumeAutoCheckker.API
             services.AddControllers();
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
+
+            services.AddSingleton<IOpenAIAPI, OpenAIAPI>(provider =>
+            {
+                var apiKey = configRoot.GetSection("OpenAISettings:ApiKey").Value;
+                return new OpenAIAPI(apiKey);
+            });
+
         }
 
         public void Configure(WebApplication app, IWebHostEnvironment env)
