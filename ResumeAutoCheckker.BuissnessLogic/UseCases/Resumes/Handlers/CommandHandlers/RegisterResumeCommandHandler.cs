@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic;
 using ResumeAutoCheckker.BuissnessLogic.Abstractions;
 using ResumeAutoCheckker.BuissnessLogic.OpenAIServices;
@@ -10,11 +11,12 @@ using ResumeAutoCheckker.Domain.Enums;
 using System.Diagnostics;
 
 namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers;
-public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHostEnvironment webHostEnvironment, ISendMessageService sendMessageService) : IRequestHandler<RegisterResumeCommand, ResponseModel>
+public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHostEnvironment webHostEnvironment, ISendMessageService sendMessageService, IConfiguration configuration) : IRequestHandler<RegisterResumeCommand, ResponseModel>
 {
     private readonly IApplicaitonDbContext _context = context;
     private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
     private readonly ISendMessageService _sendMessageService = sendMessageService;
+    private readonly string APIURL = configuration.GetSection("PhotoUrl:Url").Value!;
     public async Task<ResponseModel> Handle(RegisterResumeCommand request, CancellationToken cancellationToken)
     {
         try
@@ -70,10 +72,11 @@ public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHos
                     LastName = request.LastName,
                     FirstName = request.FirstName,
                     Status = ResumeStatus.Accepted,
-                    ResumePath = GlobalConstants.Constants.ApiUrl + "/WorkerResumes/" + file.FileName,
+                    ResumePath = APIURL + "/WorkerResumes/" + file.FileName,
                 };
                 await _context.Resumes.AddAsync(resume, cancellationToken);
                 await _context.SaveChangesAsync(cancellationToken);
+
                 return new ResponseModel()
                 {
                     Message = $"Resume Added",
@@ -90,8 +93,9 @@ public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHos
                     LastName = request.LastName,
                     FirstName = request.FirstName,
                     Status = ResumeStatus.Rejected,
-                    ResumePath = GlobalConstants.Constants.ApiUrl + "/WorkerResumes/" + file.FileName,
+                    ResumePath = APIURL + "/WorkerResumes/" + file.FileName,
                 };
+
                 await _context.Resumes.AddAsync(resume, cancellationToken);
                 await _context.SaveChangesAsync(cancellationToken);
                 return new ResponseModel()

@@ -249,6 +249,9 @@ namespace ResumeAutoCheckker.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<string>("WhyRejected")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.ToTable("Resumes");
