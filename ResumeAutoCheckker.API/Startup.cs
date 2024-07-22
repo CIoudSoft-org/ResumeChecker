@@ -37,7 +37,7 @@ namespace ResumeAutoCheckker.API
 
         public void Configure(WebApplication app, IWebHostEnvironment env)
         {
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
