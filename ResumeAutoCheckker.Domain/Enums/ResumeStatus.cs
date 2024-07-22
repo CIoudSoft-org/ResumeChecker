@@ -10,6 +10,6 @@ namespace ResumeAutoCheckker.Domain.Enums
     {
         Accepted,
         Rejected,
-        NotResponsed
+        NotResponded
     }
 }
