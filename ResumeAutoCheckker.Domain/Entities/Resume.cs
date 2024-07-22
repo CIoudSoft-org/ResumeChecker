@@ -9,6 +9,7 @@ namespace ResumeAutoCheckker.Domain.Entities
         public string? LastName { get; set; }
         public string? Email { get; set; }
         public string ResumePath {  get; set; }
+        public string? WhyRejected {  get; set; }
         public ResumeStatus Status { get; set; }
     }
 }
