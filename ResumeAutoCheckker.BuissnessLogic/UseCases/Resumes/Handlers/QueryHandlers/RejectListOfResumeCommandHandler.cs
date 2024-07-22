@@ -28,7 +28,7 @@ namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.QueryHandl
                 await _context.SaveChangesAsync(cancellationToken);
                 return new ResponseModel()
                 {
-                    Message = "Successfully deleted",
+                    Message = "Successfully rejected",
                     isSuccess = true,
                     StatusCode = 200
                 };

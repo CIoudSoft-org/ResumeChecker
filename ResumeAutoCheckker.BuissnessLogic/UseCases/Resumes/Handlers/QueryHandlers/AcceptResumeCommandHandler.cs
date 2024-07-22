@@ -3,23 +3,23 @@ using Microsoft.EntityFrameworkCore;
 using ResumeAutoCheckker.BuissnessLogic.Abstractions;
 using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers;
 using ResumeAutoCheckker.BuissnessLogic.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using ResumeAutoCheckker.Domain.Enums;
 namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.QueryHandlers
 {
-    public class RejectOneResumeCommandHandler(IApplicaitonDbContext context) : IRequestHandler<RejectOneResumeCommand, ResponseModel>
+    public class AcceptResumeCommandHandler : IRequestHandler<AcceptResumeCommand, ResponseModel>
     {
-        private readonly IApplicaitonDbContext _context = context;
+        private readonly IApplicaitonDbContext _context;
 
-        public async Task<ResponseModel> Handle(RejectOneResumeCommand request, CancellationToken cancellationToken)
+        public AcceptResumeCommandHandler(IApplicaitonDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<ResponseModel> Handle(AcceptResumeCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var resume = await _context.Resumes.FirstOrDefaultAsync(x => x.Id == request.Id);
+                var resume = await _context.Resumes.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
                 if (resume == null)
                 {
@@ -30,14 +30,16 @@ namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.QueryHandl
                         StatusCode = 404
                     };
                 }
-
+                
                 //email send
-                _context.Resumes.Remove(resume);
+
+                resume.Status = ResumeStatus.NotResponsed;
+
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return new ResponseModel()
                 {
-                    Message = "Successfully rejected",
+                    Message = "Successfully sended",
                     isSuccess = true,
                     StatusCode = 200
                 };
@@ -52,5 +54,7 @@ namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.QueryHandl
                 };
             }
         }
+    }
+
     }
 }
