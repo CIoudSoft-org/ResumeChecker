@@ -1,39 +1,64 @@
-﻿using OpenAI_API;
+﻿using Google.Cloud.AIPlatform.V1;
+using iTextSharp.text.pdf;
+using iTextSharp.text.pdf.parser;
+using OpenAI_API;
+using OpenAI_API.Completions;
 using OpenAI_API.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
 {
     public class SendMessageService : ISendMessageService
     {
-        private readonly IOpenAIAPI _openAIAPI;
-
-        public SendMessageService(IOpenAIAPI openAIAPI)
+        public async Task<string> TextInput(string filePath,
+            string projectId = "sturdy-dragon-429504-v9",
+            string location = "us-central1",
+            string publisher = "google",
+            string model = "gemini-1.5-flash-001")
         {
-            _openAIAPI = openAIAPI;
+            string pdfText = ExtractTextFromPdf(filePath);
+
+            var predictionServiceClient = new PredictionServiceClientBuilder
+            {
+                Endpoint = $"{location}-aiplatform.googleapis.com"
+            }.Build();
+
+            string prompt = $"If resume has technical skills as and Angular so write Accept, else Reject.";
+
+            var generateContentRequest = new GenerateContentRequest
+            {
+                Model = $"projects/{projectId}/locations/{location}/publishers/{publisher}/models/{model}",
+                Contents =
+                {
+                    new Content
+                    {
+                        Role = "USER",
+                        Parts =
+                        {
+                            new Part { Text = prompt },
+                            new Part { Text = pdfText }
+                        }
+                    }
+                }
+            };
+
+            GenerateContentResponse response = await predictionServiceClient.GenerateContentAsync(generateContentRequest);
+
+            string responseText = response.Candidates[0].Content.Parts[0].Text;
+            return responseText;
         }
-
-        public async Task<string> SendMessage(string message)
+        private string ExtractTextFromPdf(string filePath)
         {
-            var chat = _openAIAPI.Chat.CreateConversation();
-            chat.Model = Model.DefaultChatModel;
-            chat.RequestParameters.Temperature = 0;
-
-            chat.AppendSystemMessage("You are my friend. And you should answer my questions");
-
-            chat.AppendUserInput("Are you a boy?");
-            chat.AppendExampleChatbotOutput("Yes");
-            chat.AppendUserInput("A teacher is Robinzon");
-            chat.AppendExampleChatbotOutput("No");
-
-            chat.AppendUserInput(message);
-            string response = await chat.GetResponseFromChatbotAsync();
-            return response;
-
+            using (PdfReader reader = new PdfReader(filePath))
+            {
+                StringBuilder text = new StringBuilder();
+                for (int i = 1; i <= reader.NumberOfPages; i++)
+                {
+                    text.Append(PdfTextExtractor.GetTextFromPage(reader, i));
+                }
+                return text.ToString();
+            }
         }
     }
 }
