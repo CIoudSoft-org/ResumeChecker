@@ -24,7 +24,14 @@ namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
                 Endpoint = $"{location}-aiplatform.googleapis.com"
             }.Build();
 
-            string prompt = $"If resume has technical skills as and Angular so write Accept, else Reject.";
+            string starting = "If resume has ";
+            string musthave = " (check all available spellings of these words, for example, if the word ASP.NET core, check for all spellings of this word like Asp.Net core, asp.net core, they all fit)";
+            string ending = " then write Accepted, Why resume was rejected = Empty(just write Empty if it's Accepted here), Full Name, Email of this resume else Rejected, Why resume was rejected, Full Name, Email. (use white spaces between each answers like (e.g. Accepted Den Rov denrov13@gmail.com))";
+
+            //Input Place where HR should write their criterias (requirements)
+            string requirements = "technical skills as C#, ASP.Net Core";
+
+            string prompt = starting + requirements + musthave + ending;
 
             var generateContentRequest = new GenerateContentRequest
             {
