@@ -33,7 +33,7 @@ namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHan
 
                 //email send
 
-                resume.Status = ResumeStatus.NotResponsed;
+                resume.Status = ResumeStatus.NotResponded;
 
                 await _context.SaveChangesAsync(cancellationToken);
 

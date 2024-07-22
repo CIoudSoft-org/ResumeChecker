@@ -30,6 +30,8 @@ namespace ResumeAutoCheckker.API
             services.AddResumeAutoCheckkerBuissnessLogicDI(configRoot);
             services.AddResumeAutoCheckkerInfrastructureDI(configRoot);
 
+            services.AddMemoryCache();
+
             services.AddControllers();
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
