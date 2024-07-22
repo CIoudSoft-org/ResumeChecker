@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ResumeAutoCheckker.BuissnessLogic.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
 {
     public interface ISendMessageService
     {
-        public Task<string> TextInput(string filePath, string projectId = "sturdy-dragon-429504-v9", string location = "us-central1", string publisher = "google", string model = "gemini-1.5-flash-001");
+        public Task<AIResponceResume> TextInput(string filePath, string projectId = "sturdy-dragon-429504-v9", string location = "us-central1", string publisher = "google", string model = "gemini-1.5-flash-001");
     }
 }

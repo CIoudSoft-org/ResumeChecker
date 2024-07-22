@@ -10,6 +10,6 @@ namespace ResumeAutoCheckker.Domain.Entities
         public string? Email { get; set; }
         public string ResumePath {  get; set; }
         public ResumeStatus Status { get; set; } = ResumeStatus.NotResponded;
-        public string? Explanation { get; set; }
+        public string? WhyRejected { get; set; }
     }
 }

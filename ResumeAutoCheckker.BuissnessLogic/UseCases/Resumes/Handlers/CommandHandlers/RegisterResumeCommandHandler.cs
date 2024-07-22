@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.VisualBasic;
 using ResumeAutoCheckker.BuissnessLogic.Abstractions;
+using ResumeAutoCheckker.BuissnessLogic.EmailServices;
 using ResumeAutoCheckker.BuissnessLogic.OpenAIServices;
 using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Commands;
 using ResumeAutoCheckker.BuissnessLogic.ViewModels;
@@ -11,11 +11,12 @@ using ResumeAutoCheckker.Domain.Enums;
 using System.Diagnostics;
 
 namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers;
-public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHostEnvironment webHostEnvironment, ISendMessageService sendMessageService, IConfiguration configuration) : IRequestHandler<RegisterResumeCommand, ResponseModel>
+public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHostEnvironment webHostEnvironment, ISendMessageService sendMessageService, IConfiguration configuration, IEmailService emailSender) : IRequestHandler<RegisterResumeCommand, ResponseModel>
 {
     private readonly IApplicaitonDbContext _context = context;
     private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
     private readonly ISendMessageService _sendMessageService = sendMessageService;
+    private readonly IEmailService _emailSender = emailSender;
     private readonly string APIURL = configuration.GetSection("PhotoUrl:Url").Value!;
     public async Task<ResponseModel> Handle(RegisterResumeCommand request, CancellationToken cancellationToken)
     {
@@ -51,9 +52,15 @@ public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHos
                 };
             }
 
-            var response = await _sendMessageService.TextInput("a");
-
-
+            var response = await _sendMessageService.TextInput(filePath);
+            var email = new EmailModel()
+            {
+                To = response.Email,
+                Subject = "Resumeingizni Ko'rib Chiqish",
+                Body = $"Hurmatli {response.FullName},\r\n\r\nAssalomu alaykum!\r\n\r\nSizning Junior Full Stack lavozimiga ishga kirish uchun taqdim etgan resumeingizni ko'rib chiqish jarayonidamiz. Sizning malakangiz va tajribangiz bizning talablarimizga qanchalik mos kelishini aniqlash uchun hozirda ko'rib chiqilmoqda.\r\n\r\nYaqin orada biz siz bilan bog'lanamiz va keyingi bosqichlar haqida ma'lumot beramiz. Agar sizda qandaydir savollar bo'lsa, iltimos, biz bilan bog'laning.\r\n\r\nE'tiboringiz uchun rahmat.\r\n\r\nHurmat bilan,\r\n\r\nCloudSoft jamoasi"
+            };
+            await _emailSender.SendEmailAsync(email);
+            
             if (response == null)
             {
                 return new ResponseModel()
@@ -63,17 +70,17 @@ public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHos
                     StatusCode = 500,
                 };
             }
-            if (response == "Accept")
+            if (response.Status == ResumeStatus.Accepted)
             {
-
                 var resume = new Resume()
                 {
-                    Email = request.Email,
-                    LastName = request.LastName,
-                    FirstName = request.FirstName,
+                    Email = response.Email,
+                    LastName = response.FullName,
+                    FirstName = response.FullName,
                     Status = ResumeStatus.Accepted,
                     ResumePath = APIURL + "/WorkerResumes/" + file.FileName,
                 };
+
                 await _context.Resumes.AddAsync(resume, cancellationToken);
                 await _context.SaveChangesAsync(cancellationToken);
 
@@ -89,10 +96,11 @@ public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHos
             {
                 var resume = new Resume()
                 {
-                    Email = request.Email,
-                    LastName = request.LastName,
-                    FirstName = request.FirstName,
-                    Status = ResumeStatus.Rejected,
+                    Email = response.Email,
+                    LastName = response.FullName,
+                    FirstName = response.FullName,
+                    Status = ResumeStatus.Accepted,
+                    WhyRejected = response.WhyRejected,
                     ResumePath = APIURL + "/WorkerResumes/" + file.FileName,
                 };
 
