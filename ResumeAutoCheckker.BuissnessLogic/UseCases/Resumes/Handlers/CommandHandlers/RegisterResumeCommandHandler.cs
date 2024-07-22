@@ -1,7 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic;
 using ResumeAutoCheckker.BuissnessLogic.Abstractions;
+using ResumeAutoCheckker.BuissnessLogic.OpenAIServices;
 using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Commands;
 using ResumeAutoCheckker.BuissnessLogic.ViewModels;
 using ResumeAutoCheckker.Domain.Entities;
@@ -9,11 +11,12 @@ using ResumeAutoCheckker.Domain.Enums;
 using System.Diagnostics;
 
 namespace ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers;
-public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHostEnvironment webHostEnvironment) : IRequestHandler<RegisterResumeCommand, ResponseModel>
+public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHostEnvironment webHostEnvironment, ISendMessageService sendMessageService, IConfiguration configuration) : IRequestHandler<RegisterResumeCommand, ResponseModel>
 {
     private readonly IApplicaitonDbContext _context = context;
     private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
-
+    private readonly ISendMessageService _sendMessageService = sendMessageService;
+    private readonly string APIURL = configuration.GetSection("PhotoUrl:Url").Value!;
     public async Task<ResponseModel> Handle(RegisterResumeCommand request, CancellationToken cancellationToken)
     {
         try
@@ -48,25 +51,60 @@ public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHos
                 };
             }
 
+            var response = await _sendMessageService.TextInput("a");
 
-            var resume = new Resume()
+
+            if (response == null)
             {
-                Email = request.Email,
-                LastName = request.LastName,
-                FirstName = request.FirstName,
-                Status = ResumeStatus.Accepted,
-                ResumePath = GlobalConstants.Constants.ApiUrl + "/WorkerResumes/" + file.FileName,
-            };
-
-            await _context.Resumes.AddAsync(resume, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return new ResponseModel()
+                return new ResponseModel()
+                {
+                    Message = "There is an issue in Register resume",
+                    isSuccess = false,
+                    StatusCode = 500,
+                };
+            }
+            if (response == "Accept")
             {
-                Message = $"Resume Added",
-                isSuccess = true,
-                StatusCode = 200
-            };
+
+                var resume = new Resume()
+                {
+                    Email = request.Email,
+                    LastName = request.LastName,
+                    FirstName = request.FirstName,
+                    Status = ResumeStatus.Accepted,
+                    ResumePath = APIURL + "/WorkerResumes/" + file.FileName,
+                };
+                await _context.Resumes.AddAsync(resume, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return new ResponseModel()
+                {
+                    Message = $"Resume Added",
+                    isSuccess = true,
+                    StatusCode = 200
+                };
+            }
+
+            else
+            {
+                var resume = new Resume()
+                {
+                    Email = request.Email,
+                    LastName = request.LastName,
+                    FirstName = request.FirstName,
+                    Status = ResumeStatus.Rejected,
+                    ResumePath = APIURL + "/WorkerResumes/" + file.FileName,
+                };
+
+                await _context.Resumes.AddAsync(resume, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+                return new ResponseModel()
+                {
+                    Message = $"Resume Added",
+                    isSuccess = true,
+                    StatusCode = 200
+                };
+            }
         }
         catch (Exception ex)
         {

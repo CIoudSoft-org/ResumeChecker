@@ -64,6 +64,7 @@ namespace ResumeAutoCheckker.Infrastructure.Migrations
                     LastName = table.Column<string>(type: "text", nullable: true),
                     Email = table.Column<string>(type: "text", nullable: true),
                     ResumePath = table.Column<string>(type: "text", nullable: false),
+                    WhyRejected = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>

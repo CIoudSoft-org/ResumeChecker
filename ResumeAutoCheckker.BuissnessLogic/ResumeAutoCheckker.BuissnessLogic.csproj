@@ -7,6 +7,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Google.Cloud.AIPlatform.V1" Version="3.4.0" />
+		<PackageReference Include="iTextSharp" Version="5.5.13.4" />
 		<PackageReference Include="MediatR" Version="11.0.0" />
 		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
 		<PackageReference Include="OpenAI" Version="1.11.0" />

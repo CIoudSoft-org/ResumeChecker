@@ -12,7 +12,7 @@ using ResumeAutoCheckker.Infrastructure.Persistance;
 namespace ResumeAutoCheckker.Infrastructure.Migrations
 {
     [DbContext(typeof(RezumeCheckerDbContext))]
-    [Migration("20240721103409_test")]
+    [Migration("20240722070011_test")]
     partial class test
     {
         /// <inheritdoc />
@@ -251,6 +251,9 @@ namespace ResumeAutoCheckker.Infrastructure.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<string>("WhyRejected")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

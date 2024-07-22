@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Commands;
+using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Handlers.CommandHandlers;
 using ResumeAutoCheckker.BuissnessLogic.UseCases.Resumes.Queries;
 
 namespace ResumeAutoCheckker.API.Controllers
@@ -50,6 +51,27 @@ namespace ResumeAutoCheckker.API.Controllers
                 Size = size,
             };
             var response = await _mediator.Send(query, cancellationToken);
+
+            return Ok(response);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> RejectOneResume(long id, CancellationToken cancellationToken)
+        {
+            var command = new RejectOneResumeCommand()
+            {
+                Id = id
+            };
+
+            var response = await _mediator.Send(command, cancellationToken);
+
+            return Ok(response);
+        }
+
+        [HttpDelete("ListOfResumes")]
+        public async Task<IActionResult> RejectListOfResumes(RejectListOfResumeCommand command, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(command, cancellationToken);
 
             return Ok(response);
         }
