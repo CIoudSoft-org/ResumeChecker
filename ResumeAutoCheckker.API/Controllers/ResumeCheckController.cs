@@ -74,5 +74,18 @@ namespace ResumeAutoCheckker.API.Controllers
 
             return Ok(response);
         }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> AcceptOneResume(long id, CancellationToken cancellationToken)
+        {
+            var command = new AcceptResumeCommand()
+            {
+                Id = id
+            };
+
+            var response = await _mediator.Send(command, cancellationToken);
+
+            return Ok(response);
+        }
     }
 }
