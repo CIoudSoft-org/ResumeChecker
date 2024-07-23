@@ -1,14 +1,11 @@
-﻿using Google.Cloud.AIPlatform.V1;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Cloud.AIPlatform.V1;
 using iTextSharp.text.pdf;
 using iTextSharp.text.pdf.parser;
 using Microsoft.Extensions.Caching.Memory;
-using OpenAI_API;
-using OpenAI_API.Completions;
-using OpenAI_API.Models;
 using ResumeAutoCheckker.BuissnessLogic.ViewModels;
-using System.Reflection.PortableExecutable;
 using System.Text;
-
+using Grpc.Auth;
 namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
 {
     public class SendMessageService(IMemoryCache memoryCache) : ISendMessageService
@@ -16,16 +13,19 @@ namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
         private readonly IMemoryCache _memoryCache = memoryCache;
 
         public async Task<AIResponceResume> TextInput(string filePath,
-            string projectId = "pr-430302",
-            string location = "us-central1",
-            string publisher = "google",
-            string model = "gemini-1.5-flash-001")
+    string projectId = "pr-430302",
+    string location = "us-central1",
+    string publisher = "google",
+    string model = "gemini-1.5-flash-001")
         {
             string pdfText = ExtractTextFromPdf(filePath);
 
+            GoogleCredential credential = GoogleCredential.GetApplicationDefault();
+
             var predictionServiceClient = new PredictionServiceClientBuilder
             {
-                Endpoint = $"{location}-aiplatform.googleapis.com"
+                Endpoint = $"{location}-aiplatform.googleapis.com",
+                ChannelCredentials = credential.ToChannelCredentials()
             }.Build();
 
             string starting = "If resume has ";
@@ -40,17 +40,17 @@ namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
             {
                 Model = $"projects/{projectId}/locations/{location}/publishers/{publisher}/models/{model}",
                 Contents =
+        {
+            new Content
+            {
+                Role = "USER",
+                Parts =
                 {
-                    new Content
-                    {
-                        Role = "USER",
-                        Parts =
-                        {
-                            new Part { Text = prompt },
-                            new Part { Text = pdfText }
-                        }
-                    }
+                    new Part { Text = prompt },
+                    new Part { Text = pdfText }
                 }
+            }
+        }
             };
 
             GenerateContentResponse response = await predictionServiceClient.GenerateContentAsync(generateContentRequest);
@@ -70,7 +70,6 @@ namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
                     rp.WhyRejected += rep[i] + " ";
                 }
             }
-
             else if (rep[0] == "Accepted")
             {
                 rp.Status = Domain.Enums.ResumeStatus.Accepted;
@@ -78,9 +77,9 @@ namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
                 rp.FullName = rep[rep.Length - 2] + " " + rep[rep.Length - 3];
             }
 
-
             return rp;
         }
+
         private string ExtractTextFromPdf(string filePath)
         {
             using (PdfReader reader = new PdfReader(filePath))
