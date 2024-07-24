@@ -6,6 +6,8 @@ using Microsoft.Extensions.Caching.Memory;
 using ResumeAutoCheckker.BuissnessLogic.ViewModels;
 using System.Text;
 using Grpc.Auth;
+using static System.Net.Mime.MediaTypeNames;
+using System.Text.RegularExpressions;
 namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
 {
     public class SendMessageService(IMemoryCache memoryCache) : ISendMessageService
@@ -20,61 +22,82 @@ namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
         {
             string pdfText = ExtractTextFromPdf(filePath);
 
-            GoogleCredential credential = GoogleCredential.GetApplicationDefault();
+            //GoogleCredential credential = GoogleCredential.GetApplicationDefault();
 
-            var predictionServiceClient = new PredictionServiceClientBuilder
+            //var predictionServiceClient = new PredictionServiceClientBuilder
+            //{
+            //    Endpoint = $"{location}-aiplatform.googleapis.com",
+            //    ChannelCredentials = credential.ToChannelCredentials()
+            //}.Build();
+
+            //string starting = "If resume has ";
+            //string musthave = " (check all available spellings of these words, for example, if the word ASP.NET core, check for all spellings of this word like Asp.Net core, asp.net core, they all fit)";
+            //string ending = " then write Accepted, Why resume was rejected = Empty(just write Empty if it's Accepted here), Full Name, Email of this resume else Rejected, Why resume was rejected, Full Name, Email. (use white spaces between each answers like (e.g. Accepted Den Rov denrov13@gmail.com))";
+
+
+            string requirements = _memoryCache.Get("requirements") as string ?? "technical skills";
+            bool allWordsPresent = true;
+
+            string[] requiredThings = requirements.Split(", ");
+
+            foreach (string word in requiredThings)
             {
-                Endpoint = $"{location}-aiplatform.googleapis.com",
-                ChannelCredentials = credential.ToChannelCredentials()
-            }.Build();
-
-            string starting = "If resume has ";
-            string musthave = " (check all available spellings of these words, for example, if the word ASP.NET core, check for all spellings of this word like Asp.Net core, asp.net core, they all fit)";
-            string ending = " then write Accepted, Why resume was rejected = Empty(just write Empty if it's Accepted here), Full Name, Email of this resume else Rejected, Why resume was rejected, Full Name, Email. (use white spaces between each answers like (e.g. Accepted Den Rov denrov13@gmail.com))";
-
-            string requirements = _memoryCache.Get("requirements") as string ?? "technical skills as C#, ASP.Net Core";
-
-            string prompt = starting + requirements + musthave + ending;
-
-            var generateContentRequest = new GenerateContentRequest
-            {
-                Model = $"projects/{projectId}/locations/{location}/publishers/{publisher}/models/{model}",
-                Contents =
-        {
-            new Content
-            {
-                Role = "USER",
-                Parts =
+                if (pdfText.IndexOf(word, StringComparison.OrdinalIgnoreCase) < 0)
                 {
-                    new Part { Text = prompt },
-                    new Part { Text = pdfText }
+                    allWordsPresent = false;
+                    break;
                 }
             }
-        }
-            };
 
-            GenerateContentResponse response = await predictionServiceClient.GenerateContentAsync(generateContentRequest);
+            string email = ExtractEmail(pdfText);
 
-            string responseText = response.Candidates[0].Content.Parts[0].Text;
-            var rep = responseText.Split(' ');
+            string fullName = pdfText.Split(" ")[0];
+
+            string[] rep = allWordsPresent ? ["Accepted", $"{fullName}", $"{email}"] : ["Rejected", "Do not have all requirements", $"{fullName}", $"{email}"];
+
+
+            //    string prompt = starting + requirements + musthave + ending;
+
+            //    var generateContentRequest = new GenerateContentRequest
+            //    {
+            //        Model = $"projects/{projectId}/locations/{location}/publishers/{publisher}/models/{model}",
+            //        Contents =
+            //{
+            //    new Content
+            //    {
+            //        Role = "USER",
+            //        Parts =
+            //        {
+            //            new Part { Text = prompt },
+            //            new Part { Text = pdfText }
+            //        }
+            //    }
+            //}
+            //    };
+
+            //    GenerateContentResponse response = await predictionServiceClient.GenerateContentAsync(generateContentRequest);
+
+            //    string responseText = response.Candidates[0].Content.Parts[0].Text;
+            //    var rep = responseText.Split(' ');
 
             var rp = new AIResponceResume();
 
             if (rep[0] == "Rejected")
             {
                 rp.Status = Domain.Enums.ResumeStatus.Rejected;
-                rp.Email = rep[rep.Length - 2];
-                rp.FullName = rep[rep.Length - 3] + " " + rep[rep.Length - 4];
-                for (var i = 1; i < rep.Length - 3; i++)
-                {
-                    rp.WhyRejected += rep[i] + " ";
-                }
+                rp.Email = rep[3];
+                rp.FullName = rep[2];/* + " " + rep[rep.Length - 4];*/
+                //for (var i = 1; i < rep.Length - 3; i++)
+                //{
+                //    rp.WhyRejected += rep[i] + " ";
+                //}
+                rp.WhyRejected = rep[1];
             }
             else if (rep[0] == "Accepted")
             {
                 rp.Status = Domain.Enums.ResumeStatus.Accepted;
-                rp.Email = rep[rep.Length - 1];
-                rp.FullName = rep[rep.Length - 2] + " " + rep[rep.Length - 3];
+                rp.Email = rep[2];
+                rp.FullName = rep[1];/* + " " + rep[rep.Length - 3];*/
             }
 
             return rp;
@@ -91,6 +114,17 @@ namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
                 }
                 return text.ToString();
             }
+        }
+
+        private string ExtractEmail(string text)
+        {
+            string pattern = @"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}";
+            Match match = Regex.Match(text, pattern);
+            if (match.Success)
+            {
+                return match.Value;
+            }
+            return "";
         }
     }
 }

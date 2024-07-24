@@ -99,7 +99,7 @@ public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHos
                     Email = response.Email,
                     LastName = response.FullName,
                     FirstName = response.FullName,
-                    Status = ResumeStatus.Accepted,
+                    Status = ResumeStatus.Rejected,
                     WhyRejected = response.WhyRejected,
                     ResumePath = APIURL + "/WorkerResumes/" + file.FileName,
                 };
