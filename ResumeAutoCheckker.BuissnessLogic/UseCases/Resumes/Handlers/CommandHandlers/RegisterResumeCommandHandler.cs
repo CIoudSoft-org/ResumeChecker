@@ -22,7 +22,6 @@ public class RegisterResumeCommandHandler(IApplicaitonDbContext context, IWebHos
     {
         try
         {
-
             var file = request.ResumeFile;
             string filePath = Path.Combine(_webHostEnvironment.WebRootPath, "WorkerResumes");
             string fileName = "";

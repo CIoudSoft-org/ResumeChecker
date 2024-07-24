@@ -35,17 +35,20 @@ namespace ResumeAutoCheckker.BuissnessLogic.OpenAIServices
             //string ending = " then write Accepted, Why resume was rejected = Empty(just write Empty if it's Accepted here), Full Name, Email of this resume else Rejected, Why resume was rejected, Full Name, Email. (use white spaces between each answers like (e.g. Accepted Den Rov denrov13@gmail.com))";
 
 
-            string requirements = _memoryCache.Get("requirements") as string ?? "technical skills";
+            string requirements = _memoryCache.Get("requirements") as string ?? "";
             bool allWordsPresent = true;
 
-            string[] requiredThings = requirements.Split(", ");
-
-            foreach (string word in requiredThings)
+            if (requirements != "")
             {
-                if (pdfText.IndexOf(word, StringComparison.OrdinalIgnoreCase) < 0)
+                string[] requiredThings = requirements.Split(", ");
+
+                foreach (string word in requiredThings)
                 {
-                    allWordsPresent = false;
-                    break;
+                    if (pdfText.IndexOf(word, StringComparison.OrdinalIgnoreCase) < 0)
+                    {
+                        allWordsPresent = false;
+                        break;
+                    }
                 }
             }
 
